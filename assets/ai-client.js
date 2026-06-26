@@ -29,30 +29,68 @@ export const PROVIDERS = {
   },
 };
 
+/** 清理粘贴的 API Key（去 BOM、零宽字符、误粘贴的 Bearer 前缀等） */
+export function sanitizeApiKey(raw) {
+  if (!raw || typeof raw !== 'string') return '';
+  return raw
+    .replace(/^\uFEFF/, '')
+    .replace(/[\u200B-\u200D\u2060\uFEFF]/g, '')
+    .replace(/\s+/g, '')
+    .replace(/^Bearer\s*/i, '')
+    .replace(/[^\x21-\x7E]/g, ''); // 仅保留可打印 ASCII
+}
+
+function assertHeaderLatin1(value, label) {
+  for (let i = 0; i < value.length; i++) {
+    if (value.charCodeAt(i) > 255) {
+      throw new Error(
+        `${label} 含有非法字符（如中文或特殊符号）。请从控制台重新复制 API Key，不要包含空格或中文。`
+      );
+    }
+  }
+}
+
 export class AIClient {
   constructor({ provider, apiKey, model, baseUrl }) {
     this.provider = provider;
-    this.apiKey = apiKey;
+    this.apiKey = sanitizeApiKey(apiKey);
     this.model = model;
-    this.baseUrl = (baseUrl || PROVIDERS[provider]?.baseUrl || '').replace(/\/$/, '');
+    this.baseUrl = (baseUrl || PROVIDERS[provider]?.baseUrl || '').replace(/\/$/, '').trim();
   }
 
   async *streamChat(messages, { maxTokens = 800, temperature = 0.85, signal } = {}) {
-    const res = await fetch(`${this.baseUrl}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${this.apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: this.model,
-        messages,
-        max_tokens: maxTokens,
-        temperature,
-        stream: true,
-      }),
-      signal,
-    });
+    if (!this.apiKey) {
+      throw new Error('API Key 为空或无效，请检查后重新输入。');
+    }
+
+    const auth = `Bearer ${this.apiKey}`;
+    assertHeaderLatin1(auth, 'API Key');
+
+    let res;
+    try {
+      res = await fetch(`${this.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          Authorization: auth,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: this.model,
+          messages,
+          max_tokens: maxTokens,
+          temperature,
+          stream: true,
+        }),
+        signal,
+      });
+    } catch (err) {
+      if (err instanceof TypeError && /ISO-8859-1|headers/i.test(err.message)) {
+        throw new Error(
+          'API Key 含有浏览器无法发送的非法字符。请从控制台重新复制 Key，确保无中文、无空格、无「Bearer」前缀。'
+        );
+      }
+      throw err;
+    }
 
     if (!res.ok) {
       const errText = await res.text().catch(() => '');

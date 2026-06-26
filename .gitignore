@@ -1,0 +1,16 @@
+# 原始录屏（已压缩为 docs/demo.mp4）
+录屏*.mov
+*.mov
+
+# macOS
+.DS_Store
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*~
+
+# Logs
+*.log
+npm-debug.log*

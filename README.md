@@ -4,7 +4,7 @@
 
 在浏览器中设定辩题，让正方 AI 与反方 AI 按标准赛制展开多轮交锋，并由 AI 裁判给出胜负裁决与评分。支持 **阿里云百炼（DashScope）** 与 **OpenAI GPT**，API Key 由用户在页面自行填写，纯前端调用，无需后端服务。
 
-[English TL;DR](#english) · [快速开始](#快速开始) · [赛制说明](#赛制说明) · [项目结构](#项目结构)
+[English TL;DR](#english) · [预览](#预览) · [快速开始](#快速开始) · [联系与交流](#联系与交流) · [赛制说明](#赛制说明) · [项目结构](#项目结构)
 
 ---
 
@@ -22,11 +22,29 @@
 
 ## 预览
 
-> 启动本地服务后访问 `http://localhost:3456` 即可体验。
+### 演示视频
+
+<video controls width="100%" src="./docs/demo.mp4">
+  您的浏览器不支持内嵌播放，请<a href="./docs/demo.mp4">点击下载演示视频</a>观看。
+</video>
+
+> 演示视频：`docs/demo.mp4`（1280p · 约 3.5 分钟）· 展示从配置辩题到 AI 正反方辩论的完整流程。
+
+### 界面截图
+
+<p align="center">
+  <img src="./image.png" alt="AI 辩论赛配置页 — 模型选择、API Key、辩题与节奏设置" width="920" />
+</p>
+
+<p align="center">
+  <sub>配置页：选择百炼 / GPT 模型，输入 API Key，设定辩题与辩论节奏</sub>
+</p>
 
 | 配置页 | 辩论赛场 | 裁决结果 |
 |--------|----------|----------|
 | 设置辩题、API Key、模型与节奏 | 双栏实时辩论、计时与环节进度 | 裁判点评、评分对比、完整辩词记录 |
+
+> 启动本地服务后访问 `http://localhost:3456` 即可体验。
 
 ---
 
@@ -156,6 +174,9 @@ https://api.openai.com/v1/chat/completions
 AI_Debate_Arena/
 ├── index.html                          # 主应用入口（配置 / 赛场 / 裁决）
 ├── package.json                        # 本地开发脚本
+├── docs/
+│   └── demo.mp4                        # 演示录屏（压缩版）
+├── image.png                           # README 界面截图
 ├── assets/
 │   ├── ai-client.js                  # 百炼 & OpenAI 流式 API 客户端
 │   ├── debate-engine.js              # 赛制流程、Prompt、裁判解析
@@ -366,6 +387,20 @@ SOFTWARE.
 - [阿里云百炼 / DashScope](https://bailian.console.aliyun.com/) — OpenAI 兼容 API
 - [OpenAI](https://openai.com/) — GPT 系列模型
 - [Tailwind CSS](https://tailwindcss.com/) — 样式工具
+
+---
+
+## 联系与交流
+
+如有问题反馈、功能建议或合作交流，欢迎扫码添加微信：
+
+<p align="center">
+  <img src="./793f7dd261e4dbad8e178ee34699a640.jpg" alt="作者微信二维码" width="240" />
+</p>
+
+<p align="center">
+  <sub>扫码添加微信 · 备注「AI辩论赛」</sub>
+</p>
 
 ---
 

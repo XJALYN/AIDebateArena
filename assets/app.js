@@ -1,4 +1,4 @@
-import { AIClient, PROVIDERS } from './ai-client.js';
+import { AIClient, PROVIDERS, sanitizeApiKey } from './ai-client.js';
 import {
   DEBATERS,
   SPEED_CONFIG,
@@ -48,7 +48,7 @@ function loadConfig() {
     if (c.model) state.model = c.model;
     if (c.baseUrl) state.baseUrl = c.baseUrl;
     if (c.rememberKey !== undefined) state.rememberKey = c.rememberKey;
-    if (c.rememberKey && c.apiKey) state.apiKey = c.apiKey;
+    if (c.rememberKey && c.apiKey) state.apiKey = sanitizeApiKey(c.apiKey);
     if (c.speed) state.speed = c.speed;
   } catch {
     /* ignore */
@@ -178,7 +178,17 @@ function bindSetup() {
   });
 
   $('#api-key-input')?.addEventListener('input', (e) => {
-    state.apiKey = e.target.value;
+    state.apiKey = sanitizeApiKey(e.target.value);
+  });
+
+  $('#api-key-input')?.addEventListener('paste', () => {
+    requestAnimationFrame(() => {
+      const input = $('#api-key-input');
+      if (!input) return;
+      const cleaned = sanitizeApiKey(input.value);
+      input.value = cleaned;
+      state.apiKey = cleaned;
+    });
   });
 
   $('#base-url-input')?.addEventListener('input', (e) => {
@@ -211,7 +221,9 @@ function bindNav() {
 
 function validateSetup() {
   state.topic = $('#topic-input')?.value.trim() || '';
-  state.apiKey = $('#api-key-input')?.value.trim() || '';
+  state.apiKey = sanitizeApiKey($('#api-key-input')?.value || '');
+  if ($('#api-key-input')) $('#api-key-input').value = state.apiKey;
+
   if (!state.topic) {
     showToast('请输入辩题', 'error');
     return false;
@@ -221,7 +233,11 @@ function validateSetup() {
     return false;
   }
   if (!state.apiKey) {
-    showToast('请输入 API Key', 'error');
+    showToast('API Key 无效：请粘贴纯英文 Key，勿含中文或空格', 'error');
+    return false;
+  }
+  if (state.apiKey.length < 10) {
+    showToast('API Key 格式似乎不正确，请检查后重试', 'error');
     return false;
   }
   saveConfig();
@@ -626,7 +642,7 @@ function init() {
 
   $('#provider-select').value = state.provider;
   renderModelOptions();
-  $('#api-key-input').value = state.apiKey;
+  $('#api-key-input').value = sanitizeApiKey(state.apiKey);
   $('#remember-key').checked = state.rememberKey;
   $('#base-url-input').value = state.baseUrl;
   $('#base-url-wrap').classList.toggle('hidden', state.provider === 'bailian');
