@@ -1,0 +1,223 @@
+:root {
+  --bg: #0b1120;
+  --gold: #d4af37;
+  --cyan: #06b6d4;
+  --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+}
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: #fff;
+  font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+}
+
+.hidden { display: none !important; }
+
+/* Ambient */
+.ambient-glow {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+
+/* Nav */
+.nav-active {
+  background: rgba(255,255,255,0.1) !important;
+  color: #fff !important;
+}
+
+/* Setup */
+.speed-active {
+  background: linear-gradient(135deg, rgba(212,175,55,0.2), rgba(180,83,9,0.1)) !important;
+  border-color: rgba(212,175,55,0.5) !important;
+  box-shadow: 0 0 20px rgba(212,175,55,0.15);
+}
+
+.preset-chip {
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.8);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.preset-chip:hover {
+  border-color: rgba(6,182,212,0.5);
+  color: var(--cyan);
+  background: rgba(6,182,212,0.1);
+}
+
+/* Arena speakers */
+.speaker-active {
+  opacity: 1 !important;
+  transform: scale(1);
+}
+.speaker-active .card-inner {
+  border-color: rgba(6,182,212,0.5);
+  box-shadow: 0 0 40px rgba(6,182,212,0.35);
+}
+.speaker-active.pro-side .card-glow {
+  opacity: 1;
+}
+
+.speaker-waiting {
+  opacity: 0.55;
+}
+
+.card-glow {
+  position: absolute;
+  inset: -1px;
+  border-radius: 1rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s;
+}
+.pro-side .card-glow {
+  background: linear-gradient(135deg, rgba(6,182,212,0.6), rgba(6,182,212,0.2));
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+.con-side .card-glow {
+  background: linear-gradient(135deg, rgba(212,175,55,0.5), rgba(212,175,55,0.15));
+}
+.speaker-active.con-side .card-glow {
+  opacity: 1;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+.speaker-active.con-side .card-inner {
+  border-color: rgba(212,175,55,0.5);
+  box-shadow: 0 0 40px rgba(212,175,55,0.35);
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.cursor-blink {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: var(--cyan);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: blink 0.8s step-end infinite;
+  box-shadow: 0 0 6px var(--cyan);
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+.timer-urgent {
+  color: #ef4444 !important;
+  text-shadow: 0 0 20px rgba(239,68,68,0.6) !important;
+}
+
+/* Phase stepper */
+.step-done .step-icon { background: rgba(245,158,11,0.2); border-color: rgba(245,158,11,0.4); color: #fcd34d; }
+.step-active .step-icon { background: rgba(6,182,212,0.2); border-color: rgba(6,182,212,0.5); color: var(--cyan); box-shadow: 0 0 15px rgba(6,182,212,0.4); }
+.step-pending .step-icon { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.4); }
+
+/* Overlays */
+#transition-overlay, #judge-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(11,17,32,0.85);
+  backdrop-filter: blur(8px);
+}
+#transition-text {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  animation: fade-scale 0.5s ease;
+}
+
+@keyframes fade-scale {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes spin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Verdict */
+.winner-card {
+  border: 2px solid rgba(212,175,55,0.5) !important;
+  background: linear-gradient(135deg, rgba(212,175,55,0.12), rgba(255,255,255,0.03)) !important;
+  box-shadow: 0 0 40px rgba(212,175,55,0.2);
+}
+.loser-card {
+  opacity: 0.75;
+}
+
+.transcript-item {
+  padding: 1rem;
+  border-radius: 0.75rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.transcript-item.pro { border-left: 3px solid var(--cyan); background: rgba(6,182,212,0.05); }
+.transcript-item.con { border-left: 3px solid var(--gold); background: rgba(212,175,55,0.05); }
+
+/* Toast */
+#toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  z-index: 200;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.25s;
+  background: rgba(17,24,39,0.95);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+#toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+#toast.toast-error { border-color: rgba(239,68,68,0.5); color: #fca5a5; }
+
+/* Scroll areas */
+.scroll-area {
+  max-height: 360px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
+}
+
+/* Start button glow */
+.btn-start {
+  background: linear-gradient(90deg, var(--gold), #fbbf24, var(--gold));
+  color: var(--bg);
+  box-shadow: 0 0 40px rgba(212,175,55,0.4);
+  transition: box-shadow 0.3s, transform 0.2s;
+}
+.btn-start:hover {
+  box-shadow: 0 0 60px rgba(212,175,55,0.6);
+  transform: translateY(-1px);
+}
+
+.particle-grid {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  opacity: 0.07;
+  background-image: radial-gradient(circle, var(--cyan) 1px, transparent 1px);
+  background-size: 32px 32px;
+}

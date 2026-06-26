@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<script src="http://127.0.0.1:47823/vendor/tailwindcss.js" onerror="this.onerror=null;this.src='https://cdn.tailwindcss.com'"></script>
+<style>
+  html, body {
+    margin: 0; padding: 0; background: #fff; color: #111;
+    height: 100%;
+    max-height: 100%; overflow: hidden;
+  }
+  html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; width: 0; height: 0; }
+  body {
+    font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+  }
+  
+  @font-face {
+    font-family: 'Noto Sans SC';
+    src: local('Noto Sans SC'), local('PingFang SC'), local('Hiragino Sans GB'), local('Microsoft YaHei'), local('Source Han Sans SC');
+    font-weight: 100 900;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: 'Inter';
+    src: local('Inter'), local('SF Pro Display'), local('SF Pro Text'), local('Segoe UI'), local('Helvetica Neue');
+    font-weight: 100 900;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: 'Noto Sans';
+    src: local('Noto Sans'), local('PingFang SC'), local('Segoe UI'), local('Roboto');
+    font-weight: 100 900;
+    font-style: normal;
+  }
+
+  [data-navigate] { cursor: pointer; }
+  #root {
+    position: relative; isolation: isolate;
+    height: 100vh; max-height: 100vh; overflow: hidden;
+  }
+
+  /* Selection mode visuals — never affect layout, only paint. */
+  .ss-mode-select, .ss-mode-select * { cursor: crosshair !important; }
+  .ss-mode-select [data-navigate] { cursor: crosshair !important; }
+  .ss-rubber {
+    position: fixed; pointer-events: none; z-index: 2147483646;
+    background: rgba(99, 102, 241, 0.12);
+    border: 1px dashed #6366f1;
+    box-sizing: border-box;
+  }
+  .ss-overlays {
+    position: fixed; inset: 0; pointer-events: none; z-index: 2147483645;
+  }
+  .ss-overlay {
+    position: absolute;
+    outline: 2px solid #6366f1;
+    outline-offset: -1px;
+    background: rgba(99, 102, 241, 0.08);
+    box-sizing: border-box;
+    border-radius: 2px;
+  }
+  .ss-overlay-hover {
+    position: absolute;
+    outline: 1px dashed #6366f1;
+    background: rgba(99, 102, 241, 0.04);
+    box-sizing: border-box;
+    pointer-events: none;
+  }
+
+  /* Interact mode (auto-complete interactions). */
+  .ss-mode-interact, .ss-mode-interact * { cursor: pointer !important; }
+  .ss-interact-hover {
+    position: fixed;
+    outline: 2px solid #a855f7;
+    background: rgba(168, 85, 247, 0.10);
+    pointer-events: none;
+    box-sizing: border-box;
+    border-radius: 2px;
+    z-index: 2147483646;
+  }
+  .ss-interact-pending {
+    position: fixed;
+    background: rgba(168, 85, 247, 0.15);
+    outline: 2px dashed #a855f7;
+    pointer-events: none;
+    box-sizing: border-box;
+    z-index: 2147483646;
+  }
+</style>
+</head>
+<body>
+<div id="root"><div class="min-h-screen bg-[#0b1120] text-white font-sans" style="font-family: 'Inter', system-ui, sans-serif;">
+  <!-- Ambient background glows -->
+  <div class="pointer-events-none fixed inset-0 overflow-hidden">
+    <div class="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-cyan-500/10 blur-3xl"></div>
+    <div class="absolute top-1/2 -right-40 w-[600px] h-[600px] rounded-full bg-amber-500/10 blur-3xl"></div>
+    <div class="absolute bottom-0 left-1/3 w-[400px] h-[400px] rounded-full bg-indigo-500/10 blur-3xl"></div>
+  </div>
+
+  <!-- Top Navigation Bar -->
+  <nav class="relative z-10 border-b border-white/10 backdrop-blur-xl bg-[#0b1120]/60">
+    <div class="max-w-7xl mx-auto px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-[#d4af37] to-amber-700 flex items-center justify-center shadow-lg shadow-amber-500/30">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-[#0b1120]"><path d="M14.5 17.5 3 6V3h3l11.5 11.5"></path><path d="M13 19l6-6"></path><path d="M16 16l3 3"></path><path d="M19 21l2-2"></path></svg>
+        </div>
+        <div>
+          <div class="font-bold text-sm tracking-wider">AI DEBATE ARENA</div>
+          <div class="text-[10px] text-cyan-400/80 tracking-[0.2em] uppercase">Neural Colosseum v2.4</div>
+        </div>
+      </div>
+
+      <div class="hidden md:flex items-center gap-1 bg-white/5 rounded-lg p-1 border border-white/10">
+        <button class="px-4 py-1.5 text-sm rounded-md bg-white/10 text-white font-medium flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+          Configure
+        </button>
+        <button class="px-4 py-1.5 text-sm rounded-md text-white/60 hover:text-white hover:bg-white/5 transition" disabled="">
+          <span class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            Arena
+          </span>
+        </button>
+        <button class="px-4 py-1.5 text-sm rounded-md text-white/60 hover:text-white hover:bg-white/5 transition" disabled="">
+          <span class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+            Verdict
+          </span>
+        </button>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button class="p-2 rounded-lg hover:bg-white/5 text-white/70 hover:text-white transition">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </button>
+        <div class="flex items-center gap-2 pl-3 border-l border-white/10">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-indigo-600 flex items-center justify-center text-xs font-bold">KM</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="relative z-10 max-w-7xl mx-auto px-8 py-10">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/30 mb-4">
+        <span class="w-1.5 h-1.5 rounded-full bg-[#d4af37] animate-pulse"></span>
+        <span class="text-xs font-medium text-[#d4af37] tracking-wider uppercase">Pre-Bout Configuration</span>
+      </div>
+      <h1 class="text-4xl font-bold tracking-tight mb-2">
+        Set the <span class="bg-gradient-to-r from-[#d4af37] via-amber-300 to-[#d4af37] bg-clip-text text-transparent">Stage</span> for Battle
+      </h1>
+      <p class="text-white/60 max-w-xl mx-auto">Define the topic, calibrate the pace, and unleash two neural adversaries into the arena.</p>
+    </div>
+
+    <!-- Centered Configuration Card -->
+    <div class="max-w-[600px] mx-auto">
+      <div class="relative rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-2xl shadow-2xl shadow-black/40 overflow-hidden">
+        <!-- Card glow border -->
+        <div class="absolute inset-0 rounded-2xl pointer-events-none" style="background: linear-gradient(135deg, rgba(212,175,55,0.15), transparent 40%, rgba(6,182,212,0.15)); mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude; -webkit-mask-composite: xor; padding: 1px;"></div>
+
+        <div class="relative p-8 space-y-6">
+          <!-- Topic Section -->
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <label class="flex items-center gap-2 text-sm font-semibold text-white/90">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#d4af37]"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                Debate Topic
+              </label>
+              <span class="text-xs text-white/40 font-mono" style="font-family: 'JetBrains Mono', monospace;" id="topic-count">0 / 180</span>
+            </div>
+            <textarea id="topic-input" rows="3" placeholder="e.g. Should governments ban synthetic human clones from competing in professional sports?" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-white/30 text-sm leading-relaxed focus:outline-none focus:border-[#d4af37]/60 focus:ring-2 focus:ring-[#d4af37]/20 transition resize-none" style="font-family: 'JetBrains Mono', monospace;"></textarea>
+
+            <div class="mt-3">
+              <div class="text-xs text-white/50 mb-2 flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                QUICK PRESETS
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <button data-action="set-text:topic-input:Is artificial consciousness ethically permissible?;set-text:topic-count:52 / 180" class="group px-3 py-1.5 rounded-lg bg-white/5 hover:bg-[#06b6d4]/15 border border-white/10 hover:border-[#06b6d4]/50 text-xs text-white/80 hover:text-[#06b6d4] transition flex items-center gap-1.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                  AI Consciousness
+                </button>
+                <button data-action="set-text:topic-input:Should social media platforms be regulated as public utilities?;set-text:topic-count:67 / 180" class="group px-3 py-1.5 rounded-lg bg-white/5 hover:bg-[#d4af37]/15 border border-white/10 hover:border-[#d4af37]/50 text-xs text-white/80 hover:text-[#d4af37] transition flex items-center gap-1.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                  Social Media Regulation
+                </button>
+                <button data-action="set-text:topic-input:Is space colonization a necessity or an expensive fantasy?;set-text:topic-count:62 / 180" class="group px-3 py-1.5 rounded-lg bg-white/5 hover:bg-[#06b6d4]/15 border border-white/10 hover:border-[#06b6d4]/50 text-xs text-white/80 hover:text-[#06b6d4] transition flex items-center gap-1.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
+                  Space Colonization
+                </button>
+                <button data-action="set-text:topic-input:Universal Basic Income: economic salvation or systemic collapse?;set-text:topic-count:70 / 180" class="group px-3 py-1.5 rounded-lg bg-white/5 hover:bg-[#d4af37]/15 border border-white/10 hover:border-[#d4af37]/50 text-xs text-white/80 hover:text-[#d4af37] transition flex items-center gap-1.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                  Universal Basic Income
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div class="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+
+          <!-- Speed Toggle Section -->
+          <div>
+            <label class="flex items-center gap-2 text-sm font-semibold text-white/90 mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#06b6d4]"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              Debate Tempo
+            </label>
+            <div class="grid grid-cols-3 gap-2 p-1.5 rounded-xl bg-black/40 border border-white/10" id="speed-toggle">
+              <!-- Fast -->
+              <button class="speed-option group relative px-4 py-3 rounded-lg border border-transparent hover:border-[#06b6d4]/40 hover:bg-[#06b6d4]/5 transition text-left">
+                <div class="flex items-center justify-between mb-1.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#06b6d4]"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                  <span class="text-[10px] font-mono text-white/40" style="font-family: 'JetBrains Mono', monospace;">30s</span>
+                </div>
+                <div class="text-sm font-semibold text-white/90">Fast</div>
+                <div class="text-xs text-white/50 mt-0.5">Rapid-fire rebuttals</div>
+              </button>
+              <!-- Medium (active) -->
+              <button class="speed-option relative px-4 py-3 rounded-lg bg-gradient-to-br from-[#d4af37]/20 to-amber-700/10 border border-[#d4af37]/50 shadow-lg shadow-[#d4af37]/10 text-left ring-1 ring-[#d4af37]/30">
+                <div class="absolute -top-2 right-2 px-1.5 py-0.5 rounded bg-[#d4af37] text-[9px] font-bold text-[#0b1120] tracking-wider">RECOMMENDED</div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#d4af37]"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  <span class="text-[10px] font-mono text-[#d4af37]" style="font-family: 'JetBrains Mono', monospace;">90s</span>
+                </div>
+                <div class="text-sm font-semibold text-white">Medium</div>
+                <div class="text-xs text-white/60 mt-0.5">Balanced exchanges</div>
+              </button>
+              <!-- Slow -->
+              <button class="speed-option group relative px-4 py-3 rounded-lg border border-transparent hover:border-cyan-400/40 hover:bg-cyan-500/5 transition text-left">
+                <div class="flex items-center justify-between mb-1.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-cyan-400/80"><path d="M12 8V4H8"></path><rect x="4" y="8" width="16" height="12" rx="2"></rect><path d="M2 14h2"></path><path d="M20 14h2"></path><path d="M15 13v2"></path><path d="M9 13v2"></path></svg>
+                  <span class="text-[10px] font-mono text-white/40" style="font-family: 'JetBrains Mono', monospace;">180s</span>
+                </div>
+                <div class="text-sm font-semibold text-white/90">Slow</div>
+                <div class="text-xs text-white/50 mt-0.5">Deep deliberation</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div class="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+
+          <!-- Model Preview -->
+          <div class="grid grid-cols-2 gap-3">
+            <div class="p-3 rounded-xl bg-black/30 border border-white/10">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-mono tracking-wider text-cyan-400/80" style="font-family: 'JetBrains Mono', monospace;">AFFIRMATIVE</span>
+                <div class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></div>
+              </div>
+              <div class="text-sm font-semibold text-white">NEXUS-7</div>
+              <div class="text-xs text-white/50 mt-0.5">Logic-first reasoning core</div>
+            </div>
+            <div class="p-3 rounded-xl bg-black/30 border border-white/10">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-mono tracking-wider text-[#d4af37]/80" style="font-family: 'JetBrains Mono', monospace;">NEGATIVE</span>
+                <div class="w-1.5 h-1.5 rounded-full bg-[#d4af37] animate-pulse"></div>
+              </div>
+              <div class="text-sm font-semibold text-white">ORACLE-X</div>
+              <div class="text-xs text-white/50 mt-0.5">Rhetoric-weighted response</div>
+            </div>
+          </div>
+
+          <!-- Start Button -->
+          <button data-navigate="arena-stage" class="group relative w-full py-4 rounded-xl bg-gradient-to-r from-[#d4af37] via-amber-400 to-[#d4af37] text-[#0b1120] font-bold text-base tracking-wide shadow-[0_0_40px_rgba(212,175,55,0.4)] hover:shadow-[0_0_60px_rgba(212,175,55,0.6)] transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden">
+            <span class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            <span>INITIATE DEBATE</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </button>
+
+          <div class="flex items-center justify-center gap-1.5 text-xs text-white/40">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            <span>Estimated runtime: ~4 min · 6 rounds · AI Judge verdict</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom info strip -->
+      <div class="mt-6 flex items-center justify-between text-xs text-white/40 px-2">
+        <div class="flex items-center gap-4">
+          <span class="flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+            All systems nominal
+          </span>
+          <span class="font-mono" style="font-family: 'JetBrains Mono', monospace;">LAT 24ms · GPU RTX-A6000</span>
+        </div>
+        <span class="font-mono" style="font-family: 'JetBrains Mono', monospace;">SESSION #A7F2-091</span>
+      </div>
+    </div>
+  </main>
+</div></div>
+<script>
+(function() {
+  var scrollable = false;
+  var root = document.getElementById('root');
+  var selectMode = false;
+  var selection = []; // array of {path:number[], el:Element}
+  var rubber = null;
+  var overlays = null;
+  var hoverOverlay = null;
+  var dragStart = null;
+
+  function pathOf(el) {
+    var p = [];
+    var cur = el;
+    while (cur && cur !== root) {
+      var parent = cur.parentNode;
+      if (!parent) return null;
+      var idx = Array.prototype.indexOf.call(parent.children, cur);
+      if (idx < 0) return null;
+      p.unshift(idx);
+      cur = parent;
+    }
+    return p;
+  }
+  function elFromPath(p) {
+    var cur = root;
+    for (var i = 0; i < p.length; i++) {
+      if (!cur || !cur.children || p[i] >= cur.children.length) return null;
+      cur = cur.children[p[i]];
+    }
+    return cur;
+  }
+  function ensureOverlaysHost() {
+    if (!overlays) {
+      overlays = document.createElement('div');
+      overlays.className = 'ss-overlays';
+      document.body.appendChild(overlays);
+    }
+    return overlays;
+  }
+  function clearOverlays() {
+    if (overlays) overlays.innerHTML = '';
+  }
+  function paintOverlays() {
+    var host = ensureOverlaysHost();
+    host.innerHTML = '';
+    selection.forEach(function(item) {
+      if (!item.el || !item.el.isConnected) return;
+      var r = item.el.getBoundingClientRect();
+      var d = document.createElement('div');
+      d.className = 'ss-overlay';
+      d.style.left = r.left + 'px';
+      d.style.top = r.top + 'px';
+      d.style.width = r.width + 'px';
+      d.style.height = r.height + 'px';
+      host.appendChild(d);
+    });
+  }
+  function postSelection() {
+    var payload = selection.map(function(it) {
+      return { path: it.path, outerHTML: it.el ? it.el.outerHTML : '' };
+    }).filter(function(x) { return x.outerHTML; });
+    parent.postMessage({ type: 'apmaker:selection', items: payload }, '*');
+  }
+  function clearSelection() {
+    selection = [];
+    clearOverlays();
+    postSelection();
+  }
+  function stripGoogleFontLoads(html) {
+    return html
+      .replace(/<link\b[^>]*\bhref=["']https?:\/\/fonts\.googleapis\.com[^"']*["'][^>]*>/gi, '')
+      .replace(/@import\s+url\(\s*["']?https?:\/\/fonts\.googleapis\.com[^)]*\)\s*;?/gi, '')
+      .replace(/@import\s+["']https?:\/\/fonts\.googleapis\.com[^"']*["']\s*;?/gi, '');
+  }
+  function enforceNoScroll() {
+    if (scrollable) return;
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    root.style.overflow = 'hidden';
+    root.style.height = '100vh';
+    root.style.maxHeight = '100vh';
+    var all = root.querySelectorAll('*');
+    for (var i = 0; i < all.length; i++) {
+      var el = all[i];
+      if (!el || !el.className || typeof el.className !== 'string') continue;
+      if (el.className.indexOf('min-h-screen') < 0) continue;
+      el.className = el.className.replace(/\bmin-h-screen\b/g, 'h-screen');
+      if (el.className.indexOf('overflow-hidden') < 0) el.classList.add('overflow-hidden');
+    }
+  }
+  function rectsIntersect(a, b) {
+    return !(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom);
+  }
+  function rectContains(outer, inner) {
+    return inner.left >= outer.left && inner.right <= outer.right
+        && inner.top >= outer.top && inner.bottom <= outer.bottom;
+  }
+
+  function collectInRect(rect) {
+    var hits = [];
+    var all = root.querySelectorAll('*');
+    for (var i = 0; i < all.length; i++) {
+      var el = all[i];
+      if (el.tagName === 'SCRIPT' || el.tagName === 'STYLE') continue;
+      var r = el.getBoundingClientRect();
+      if (r.width <= 0 || r.height <= 0) continue;
+      if (!rectsIntersect(rect, r)) continue;
+      if (!rectContains(rect, r)) continue;
+      hits.push(el);
+    }
+    // Drop any element whose ancestor is also in hits — keep top-most containers.
+    var hitSet = new Set(hits);
+    var top = hits.filter(function(el) {
+      var p = el.parentElement;
+      while (p && p !== root) {
+        if (hitSet.has(p)) return false;
+        p = p.parentElement;
+      }
+      return true;
+    });
+    return top;
+  }
+
+  function setSelectMode(on) {
+    selectMode = !!on;
+    document.body.classList.toggle('ss-mode-select', selectMode);
+    if (!selectMode) {
+      clearSelection();
+      if (hoverOverlay && hoverOverlay.parentNode) hoverOverlay.parentNode.removeChild(hoverOverlay);
+      hoverOverlay = null;
+      if (rubber && rubber.parentNode) rubber.parentNode.removeChild(rubber);
+      rubber = null;
+      dragStart = null;
+    }
+  }
+
+  // === interact mode state ===
+  var interactMode = false;
+  var interactHoverOverlay = null;
+  var interactPendingOverlay = null;
+  // CSS selector for elements eligible to receive a click in interact mode.
+  // Anything already has navigate/action is included — user can re-wire it.
+  var INTERACT_TARGET_SEL = 'button, a, [role="button"], input, [data-action], [data-navigate]';
+  function isInteractTarget(el) {
+    if (!el || el === root) return false;
+    if (!root.contains(el)) return false;
+    return el.matches && el.matches(INTERACT_TARGET_SEL);
+  }
+  function nearestInteractTarget(el) {
+    if (!el) return null;
+    // Prefer the closest matching ancestor (handles clicks on icon inside button).
+    if (el.closest) return el.closest(INTERACT_TARGET_SEL);
+    return null;
+  }
+  function setInteractMode(on) {
+    interactMode = !!on;
+    document.body.classList.toggle('ss-mode-interact', interactMode);
+    if (!interactMode) {
+      if (interactHoverOverlay && interactHoverOverlay.parentNode) {
+        interactHoverOverlay.parentNode.removeChild(interactHoverOverlay);
+      }
+      interactHoverOverlay = null;
+      clearInteractPending();
+    }
+  }
+  function paintInteractHover(el) {
+    if (!el) {
+      if (interactHoverOverlay && interactHoverOverlay.parentNode) {
+        interactHoverOverlay.parentNode.removeChild(interactHoverOverlay);
+      }
+      interactHoverOverlay = null;
+      return;
+    }
+    var r = el.getBoundingClientRect();
+    if (!interactHoverOverlay) {
+      interactHoverOverlay = document.createElement('div');
+      interactHoverOverlay.className = 'ss-interact-hover';
+      ensureOverlaysHost().appendChild(interactHoverOverlay);
+    }
+    interactHoverOverlay.style.left = r.left + 'px';
+    interactHoverOverlay.style.top = r.top + 'px';
+    interactHoverOverlay.style.width = r.width + 'px';
+    interactHoverOverlay.style.height = r.height + 'px';
+  }
+  function setInteractPending(path) {
+    clearInteractPending();
+    if (!path) return;
+    var el = elFromPath(path);
+    if (!el) return;
+    var r = el.getBoundingClientRect();
+    interactPendingOverlay = document.createElement('div');
+    interactPendingOverlay.className = 'ss-interact-pending';
+    interactPendingOverlay.style.left = r.left + 'px';
+    interactPendingOverlay.style.top = r.top + 'px';
+    interactPendingOverlay.style.width = r.width + 'px';
+    interactPendingOverlay.style.height = r.height + 'px';
+    ensureOverlaysHost().appendChild(interactPendingOverlay);
+  }
+  function clearInteractPending() {
+    if (interactPendingOverlay && interactPendingOverlay.parentNode) {
+      interactPendingOverlay.parentNode.removeChild(interactPendingOverlay);
+    }
+    interactPendingOverlay = null;
+  }
+
+  // === data-action interpreter (declarative in-screen interactions) ===
+  function $id(id) { return document.getElementById(id); }
+  function runActions(spec) {
+    if (!spec) return;
+    var parts = spec.split(';');
+    for (var i = 0; i < parts.length; i++) {
+      var raw = parts[i].trim();
+      if (!raw) continue;
+      var colon = raw.indexOf(':');
+      if (colon < 0) { console.warn('[ss] bad data-action (no verb):', raw); continue; }
+      var verb = raw.slice(0, colon).trim();
+      var rest = raw.slice(colon + 1);
+      try {
+        if (verb === 'open') {
+          var oel = $id(rest.trim()); if (oel) oel.classList.remove('hidden');
+        } else if (verb === 'close') {
+          var cel = $id(rest.trim()); if (cel) cel.classList.add('hidden');
+        } else if (verb === 'toggle') {
+          var tel = $id(rest.trim()); if (tel) tel.classList.toggle('hidden');
+        } else if (verb === 'toast') {
+          showToast(rest);
+        } else if (verb === 'set-text') {
+          var sc = rest.indexOf(':');
+          if (sc < 0) { console.warn('[ss] bad set-text (need id:text):', raw); continue; }
+          var sel = $id(rest.slice(0, sc).trim());
+          if (sel) sel.textContent = rest.slice(sc + 1);
+        } else if (verb === 'add-class' || verb === 'remove-class') {
+          var ac = rest.indexOf(':');
+          if (ac < 0) { console.warn('[ss] bad ' + verb + ' (need id:cls):', raw); continue; }
+          var ael = $id(rest.slice(0, ac).trim());
+          if (ael) ael.classList[verb === 'add-class' ? 'add' : 'remove'](rest.slice(ac + 1).trim());
+        } else {
+          console.warn('[ss] unknown data-action verb:', verb);
+        }
+      } catch (err) {
+        console.warn('[ss] data-action failed:', raw, err);
+      }
+    }
+  }
+  var toastHost = null;
+  var toastTimer = null;
+  function showToast(msg) {
+    if (!toastHost) {
+      toastHost = document.createElement('div');
+      toastHost.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);'
+        + 'z-index:2147483647;pointer-events:none;'
+        + 'background:rgba(17,24,39,0.92);color:#fff;font-size:13px;padding:8px 14px;'
+        + 'border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.25);opacity:0;transition:opacity .15s;';
+      document.body.appendChild(toastHost);
+    }
+    toastHost.textContent = msg;
+    toastHost.style.opacity = '1';
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function() { if (toastHost) toastHost.style.opacity = '0'; }, 2500);
+  }
+
+  // === message channel from parent ===
+  window.addEventListener('message', function(e) {
+    var d = e.data;
+    if (!d || typeof d !== 'object') return;
+    if (d.type === 'apmaker:setHtml' && typeof d.html === 'string') {
+      selection = [];
+      clearOverlays();
+      clearInteractPending();
+      root.innerHTML = stripGoogleFontLoads(d.html);
+      enforceNoScroll();
+      postSelection();
+    } else if (d.type === 'apmaker:setSelectMode') {
+      setSelectMode(!!d.on);
+    } else if (d.type === 'apmaker:setInteractMode') {
+      setInteractMode(!!d.on);
+    } else if (d.type === 'apmaker:interact-pending') {
+      setInteractPending(Array.isArray(d.path) ? d.path : null);
+    } else if (d.type === 'apmaker:clearSelection') {
+      clearSelection();
+    }
+  });
+
+  // === navigation + data-action + interact mode ===
+  document.addEventListener('click', function(e) {
+    if (selectMode) { e.preventDefault(); e.stopPropagation(); return; }
+    if (interactMode) {
+      e.preventDefault(); e.stopPropagation();
+      var picked = nearestInteractTarget(e.target);
+      if (!picked) return;
+      var p = pathOf(picked);
+      if (!p) return;
+      var r = picked.getBoundingClientRect();
+      parent.postMessage({
+        type: 'apmaker:interact-target',
+        path: p,
+        outerHTML: picked.outerHTML,
+        rect: { left: r.left, top: r.top, width: r.width, height: r.height, bottom: r.bottom, right: r.right },
+      }, '*');
+      return;
+    }
+    var actionEl = e.target && e.target.closest && e.target.closest('[data-action]');
+    if (actionEl) {
+      e.preventDefault();
+      runActions(actionEl.getAttribute('data-action') || '');
+      return;
+    }
+    var t = e.target && e.target.closest && e.target.closest('[data-navigate]');
+    if (t) {
+      e.preventDefault();
+      parent.postMessage({ type: 'apmaker:navigate', to: t.getAttribute('data-navigate') }, '*');
+    }
+  }, true);
+  document.addEventListener('submit', function(e){ e.preventDefault(); }, true);
+
+  // === rubber-band selection ===
+  document.addEventListener('mousedown', function(e) {
+    if (!selectMode) return;
+    if (e.button !== 0) return;
+    e.preventDefault(); e.stopPropagation();
+    dragStart = { x: e.clientX, y: e.clientY, additive: e.shiftKey };
+    rubber = document.createElement('div');
+    rubber.className = 'ss-rubber';
+    rubber.style.left = e.clientX + 'px';
+    rubber.style.top = e.clientY + 'px';
+    rubber.style.width = '0px';
+    rubber.style.height = '0px';
+    document.body.appendChild(rubber);
+  }, true);
+  document.addEventListener('mousemove', function(e) {
+    if (interactMode) {
+      var picked = nearestInteractTarget(document.elementFromPoint(e.clientX, e.clientY));
+      paintInteractHover(picked);
+      return;
+    }
+    if (selectMode && !dragStart) {
+      // Hover indicator on the element under the cursor (top-most non-root).
+      var el = document.elementFromPoint(e.clientX, e.clientY);
+      while (el && el !== root && el.parentElement && el.parentElement !== root && el.tagName !== 'BODY') {
+        // Walk to first ancestor that is a direct/indirect child of root.
+        if (root.contains(el)) break;
+        el = el.parentElement;
+      }
+      if (!el || !root.contains(el) || el === root) {
+        if (hoverOverlay && hoverOverlay.parentNode) hoverOverlay.parentNode.removeChild(hoverOverlay);
+        hoverOverlay = null;
+        return;
+      }
+      var r = el.getBoundingClientRect();
+      if (!hoverOverlay) {
+        hoverOverlay = document.createElement('div');
+        hoverOverlay.className = 'ss-overlay-hover';
+        ensureOverlaysHost().appendChild(hoverOverlay);
+      }
+      hoverOverlay.style.left = r.left + 'px';
+      hoverOverlay.style.top = r.top + 'px';
+      hoverOverlay.style.width = r.width + 'px';
+      hoverOverlay.style.height = r.height + 'px';
+      return;
+    }
+    if (!selectMode || !dragStart || !rubber) return;
+    var x1 = Math.min(dragStart.x, e.clientX);
+    var y1 = Math.min(dragStart.y, e.clientY);
+    var x2 = Math.max(dragStart.x, e.clientX);
+    var y2 = Math.max(dragStart.y, e.clientY);
+    rubber.style.left = x1 + 'px';
+    rubber.style.top = y1 + 'px';
+    rubber.style.width = (x2 - x1) + 'px';
+    rubber.style.height = (y2 - y1) + 'px';
+  }, true);
+  document.addEventListener('mouseup', function(e) {
+    if (!selectMode || !dragStart) return;
+    e.preventDefault(); e.stopPropagation();
+    var x1 = Math.min(dragStart.x, e.clientX);
+    var y1 = Math.min(dragStart.y, e.clientY);
+    var x2 = Math.max(dragStart.x, e.clientX);
+    var y2 = Math.max(dragStart.y, e.clientY);
+    var rect = { left: x1, top: y1, right: x2, bottom: y2 };
+    var w = x2 - x1, h = y2 - y1;
+    var additive = dragStart.additive;
+    dragStart = null;
+    if (rubber && rubber.parentNode) rubber.parentNode.removeChild(rubber);
+    rubber = null;
+
+    var hits;
+    if (w < 4 && h < 4) {
+      // Treat as click — pick the topmost element under the cursor (relative to root).
+      var pt = document.elementFromPoint(x1, y1);
+      hits = (pt && root.contains(pt) && pt !== root) ? [pt] : [];
+    } else {
+      hits = collectInRect(rect);
+    }
+
+    if (!additive) selection = [];
+    var existingPaths = new Set(selection.map(function(it) { return it.path.join(','); }));
+    hits.forEach(function(el) {
+      var p = pathOf(el);
+      if (!p) return;
+      var key = p.join(',');
+      if (existingPaths.has(key)) return;
+      existingPaths.add(key);
+      selection.push({ path: p, el: el });
+    });
+    paintOverlays();
+    postSelection();
+  }, true);
+
+  // ESC clears selection. Also clear on click outside any current selection
+  // when in select mode and not drag-selecting.
+  document.addEventListener('keydown', function(e) {
+    if (e.key !== 'Escape') return;
+    if (selectMode) { e.preventDefault(); clearSelection(); }
+    if (interactMode) {
+      e.preventDefault();
+      paintInteractHover(null);
+      clearInteractPending();
+      // Tell parent to close composer / clear interactTarget.
+      parent.postMessage({ type: 'apmaker:interact-cancel' }, '*');
+    }
+  }, true);
+
+  // Keep overlays aligned on scroll/resize/content updates.
+  window.addEventListener('scroll', paintOverlays, true);
+  window.addEventListener('resize', paintOverlays);
+  var mo = new MutationObserver(function() {
+    // Drop selection items whose element detached.
+    selection = selection.filter(function(it) { return it.el && it.el.isConnected; });
+    paintOverlays();
+  });
+  mo.observe(root, { childList: true, subtree: true, attributes: true, characterData: true });
+  if (root.innerHTML.trim()) enforceNoScroll();
+})();
+</script>
+</body>
+</html>
